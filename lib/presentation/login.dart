@@ -3,12 +3,14 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:flutter_study/home.dart';
 import 'package:flutter_study/model/LoginMethod.dart';
+import 'package:flutter_study/presentation/home.dart';
+import 'package:flutter_study/util/MyDialogs.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 final FirebaseAuth _auth = FirebaseAuth.instance;
 final GoogleSignIn _googleSignIn = new GoogleSignIn();
+final FlutterSecureStorage _storage = new FlutterSecureStorage();
 
 class Login extends StatefulWidget {
   Login({Key key}) : super(key: key);
@@ -20,15 +22,15 @@ class Login extends StatefulWidget {
 }
 
 class _LoginState extends State<Login> {
-  final storage = new FlutterSecureStorage();
-
   @override
   void initState() {
-    storage.read(key: 'login_method').then((value) {
-      switch (value) {
-        case LoginMethod.GOOGLE:
-          _handlerGoogleLogin();
-          break;
+    _storage.read(key: 'login_method').then((value) {
+      if (value != null) {
+        switch (value) {
+          case LoginMethod.GOOGLE:
+            _handlerGoogleLogin();
+            break;
+        }
       }
     });
     super.initState();
@@ -46,18 +48,28 @@ class _LoginState extends State<Login> {
 
   Widget _buildBody(BuildContext context) {
     return new Column(
-      mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: <Widget>[
         new Padding(
-          padding: const EdgeInsets.only(top: 40.0),
+          padding: const EdgeInsets.only(top: 40.0,),
           child: new Image.asset(
             'assets/firebase_icon.png',
             height: 150.0,
           ),
         ),
         new Padding(
-          padding: const EdgeInsets.only(top: 20.0),
+          padding: const EdgeInsets.only(),
+          child: const Text(
+            'Selecione uma forma para entrar:',
+            style: const TextStyle(
+              fontSize: 18.0,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        new Padding(
+          padding: const EdgeInsets.only(bottom: 80.0,),
           child: new Center(
             child: new FlatButton(
               child: new Image.asset(
@@ -66,6 +78,12 @@ class _LoginState extends State<Login> {
             ),
           ),
         ),
+        new Padding(
+          padding: const EdgeInsets.only(
+            bottom: 40.0,
+          ),
+          child: new Text('Por enquanto é só uma forma de autenticação.'),
+        )
       ],
     );
   }
@@ -77,13 +95,14 @@ class _LoginState extends State<Login> {
       accessToken: googleAuth.accessToken,
       idToken: googleAuth.idToken,
     );
-    print("signed in " + user.displayName);
     return user;
   }
 
   void _handlerGoogleLogin() {
+    MyDialogs.circularWating(context, 'Autenticando...');
     _googleLogin().then((FirebaseUser user) {
-      storage.write(key: 'login_method', value: LoginMethod.GOOGLE);
+      _storage.write(key: 'login_method', value: LoginMethod.GOOGLE);
+      Navigator.of(context).pop();
       Navigator.of(context).pushReplacementNamed(Home.routeName);
     }).catchError((e) => print(e));
   }

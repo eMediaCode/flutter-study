@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_study/home.dart';
-import 'package:flutter_study/login.dart';
+import 'package:flutter_study/presentation/home.dart';
+import 'package:flutter_study/presentation/login.dart';
 
 class Routes {
   static Map<String, WidgetBuilder> build(BuildContext context) {
