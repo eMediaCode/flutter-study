@@ -9,9 +9,9 @@ import 'package:flutter_study/model/StudyObject.dart';
 import 'package:flutter_study/presentation/login.dart';
 import 'package:flutter_study/widget/StudyObjectWidget.dart';
 
-final FirebaseAuth _auth = FirebaseAuth.instance;
-final FirebaseDatabase _database = FirebaseDatabase.instance;
-final FlutterSecureStorage _storage = new FlutterSecureStorage();
+final FirebaseAuth auth = FirebaseAuth.instance;
+final FirebaseDatabase database = FirebaseDatabase.instance;
+final FlutterSecureStorage storage = new FlutterSecureStorage();
 
 class Home extends StatefulWidget {
   Home({Key key}) : super(key: key);
@@ -26,24 +26,25 @@ class _HomeState extends State<Home> {
   String name = '';
   String email = '';
   String photoUrl = 'https://placeholdit.co//i/96x96?text=FS&bg=1d7ff4';
-  DatabaseReference _userReference;
-  List<StudyObject> _list = <StudyObject>[];
+  DatabaseReference userReference;
+  List<StudyObject> list = <StudyObject>[];
 
-  StreamSubscription _streamSubscription;
+  StreamSubscription streamSubscription;
 
   @override
   void initState() {
-    _auth.currentUser().then((FirebaseUser user) {
+    auth.currentUser().then((FirebaseUser user) {
       setState(() {
         name = user.displayName;
         email = user.email;
         photoUrl = user.photoUrl;
       });
 
-      _userReference = _database.reference().child('lists').child(user.uid);
+      userReference = database.reference().child('lists').child(user.uid);
 
-      _getStreamSubscription().then((StreamSubscription streamSubscription) =>
-      _streamSubscription = streamSubscription);
+      _getStreamSubscription().then(
+              (StreamSubscription localStreamSubscription) =>
+          streamSubscription = localStreamSubscription);
     });
 
     super.initState();
@@ -51,8 +52,8 @@ class _HomeState extends State<Home> {
 
   @override
   void dispose() {
-    if (_streamSubscription != null) {
-      _streamSubscription.cancel();
+    if (streamSubscription != null) {
+      streamSubscription.cancel();
     }
     super.dispose();
   }
@@ -97,33 +98,35 @@ class _HomeState extends State<Home> {
 
   Widget _buildBody(BuildContext context) {
     return new ListView(
-      children: _list
+      children: list
           .map((StudyObject studyObject) =>
       new StudyObjectWidget(
-        studyObject,
-            () => _delete(studyObject), // TODO - Como faz isso direito?
-            () => _showInputDialog(studyObject),
+        studyObject: studyObject,
+        onUpdate: (StudyObject localStudyObject) =>
+            _showInputDialog(localStudyObject),
+        onDelete: (StudyObject localStudyObject) =>
+            _delete(localStudyObject),
       ))
           .toList(),
     );
   }
 
-  void _logout() async {
-    await _auth.signOut();
-    await _storage.delete(key: 'login_method');
-    Navigator.of(context).pushReplacementNamed(Login.routeName);
-  }
-
   Future<StreamSubscription<Event>> _getStreamSubscription() async {
-    return _userReference.onValue.listen((Event event) {
-      _list.clear();
+    return userReference.onValue.listen((Event event) {
+      list.clear();
       if (event.snapshot.value != null) {
         new SplayTreeMap.from(event.snapshot.value).forEach((key, value) {
           StudyObject studyObject = new StudyObject.fromJson(key, value);
-          setState(() => _list.add(studyObject));
+          setState(() => list.add(studyObject));
         });
       }
     });
+  }
+
+  void _logout() async {
+    await auth.signOut();
+    await storage.delete(key: 'login_method');
+    Navigator.of(context).pushReplacementNamed(Login.routeName);
   }
 
   Future<Null> _showInputDialog(StudyObject studyObject) async {
@@ -203,31 +206,22 @@ class _HomeState extends State<Home> {
   }
 
   Future<Null> _setData(StudyObject studyObject) async {
-    TransactionResult transactionResult;
-
-    // TODO - Melhorar essa implementação.
+    DatabaseReference localReference;
 
     if (studyObject.key == null) {
-      transactionResult = await _userReference
-          .push()
-          .runTransaction((MutableData mutableData) async {
-        mutableData.value = {
-          'name': studyObject.name,
-          'description': studyObject.description,
-        };
-        return mutableData;
-      });
+      localReference = userReference.push();
     } else {
-      transactionResult = await _userReference
-          .child(studyObject.key)
-          .runTransaction((MutableData mutableData) async {
-        mutableData.value = {
-          'name': studyObject.name,
-          'description': studyObject.description,
-        };
-        return mutableData;
-      });
+      localReference = userReference.child(studyObject.key);
     }
+
+    final TransactionResult transactionResult =
+    await localReference.runTransaction((MutableData mutableData) async {
+      mutableData.value = {
+        'name': studyObject.name,
+        'description': studyObject.description,
+      };
+      return mutableData;
+    });
 
     if (transactionResult.committed) {
       Navigator.of(context).pop();
@@ -240,7 +234,7 @@ class _HomeState extends State<Home> {
   }
 
   Future<Null> _delete(StudyObject studyObject) async {
-    final TransactionResult transactionResult = await _userReference
+    final TransactionResult transactionResult = await userReference
         .child(studyObject.key)
         .runTransaction((MutableData mutableData) async {
       mutableData.value = null;

@@ -1,12 +1,24 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_study/model/StudyObject.dart';
 
+typedef MyCallback(StudyObject studyObject);
+
 class StudyObjectWidget extends StatelessWidget {
-  StudyObjectWidget(this.studyObject, this.onDelete, this.onUpdate);
+  const StudyObjectWidget({
+    Key key,
+    @required this.studyObject,
+    @required this.onDelete,
+    @required this.onUpdate,
+  })
+      : assert(studyObject != null),
+        assert(onDelete != null),
+        assert(onUpdate != null),
+        super(key: key);
 
   final StudyObject studyObject;
-  final VoidCallback onDelete;
-  final VoidCallback onUpdate;
+  final MyCallback onDelete;
+  final MyCallback onUpdate;
 
   @override
   Widget build(BuildContext context) {
@@ -36,11 +48,11 @@ class StudyObjectWidget extends StatelessWidget {
           children: <Widget>[
             new IconButton(
               icon: const Icon(Icons.edit),
-              onPressed: onUpdate,
+              onPressed: () => onUpdate(studyObject),
             ),
             new IconButton(
               icon: const Icon(Icons.delete),
-              onPressed: onDelete,
+              onPressed: () => onDelete(studyObject),
             ),
           ],
         ),

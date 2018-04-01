@@ -8,12 +8,12 @@ Aplicação para aprendizado do Flutter com o Firebase.
 - [ ] Login Facebook.
 - [ ] Login E-mail.
 - [x] Drawer com dados do usuário.
-- [ ] **Implementar Firebase Database.**
+- [x] Implementar Firebase Database.
   - [x] Leitura.
   - [x] Escrita.
   - [x] Alteração.
   - [x] Exclusão.
-  - [ ] Segurança.
+  - [x] Segurança.
 - [ ] Implementar Firebase Storage
   - _Tarefas futuras..._
 - [ ] Implementar Firebase Messaging
