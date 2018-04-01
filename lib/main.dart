@@ -12,6 +12,7 @@ class MyApp extends StatelessWidget {
       title: 'Flutter Demo',
       theme: new ThemeData(
         primarySwatch: Colors.orange,
+        buttonColor: Colors.orange,
       ),
       home: new Login(),
       routes: Routes.build(context),
