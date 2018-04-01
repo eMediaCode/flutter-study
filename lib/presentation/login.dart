@@ -52,7 +52,9 @@ class _LoginState extends State<Login> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: <Widget>[
         new Padding(
-          padding: const EdgeInsets.only(top: 40.0,),
+          padding: const EdgeInsets.only(
+            top: 40.0,
+          ),
           child: new Image.asset(
             'assets/firebase_icon.png',
             height: 150.0,
@@ -69,7 +71,9 @@ class _LoginState extends State<Login> {
           ),
         ),
         new Padding(
-          padding: const EdgeInsets.only(bottom: 80.0,),
+          padding: const EdgeInsets.only(
+            bottom: 80.0,
+          ),
           child: new Center(
             child: new FlatButton(
               child: new Image.asset(

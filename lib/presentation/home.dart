@@ -1,8 +1,8 @@
 import 'dart:async';
-import 'dart:collection';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_database/ui/firebase_animated_list.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_study/model/StudyObject.dart';
@@ -28,8 +28,7 @@ class _HomeState extends State<Home> {
   String photoUrl = 'https://placeholdit.co//i/96x96?text=FS&bg=1d7ff4';
   DatabaseReference userReference;
   List<StudyObject> list = <StudyObject>[];
-
-  StreamSubscription streamSubscription;
+  Widget widgetList = new Text('Aguarde...');
 
   @override
   void initState() {
@@ -42,20 +41,25 @@ class _HomeState extends State<Home> {
 
       userReference = database.reference().child('lists').child(user.uid);
 
-      _getStreamSubscription().then(
-              (StreamSubscription localStreamSubscription) =>
-          streamSubscription = localStreamSubscription);
+      setState(
+            () =>
+        widgetList = new FirebaseAnimatedList(
+          query: userReference.orderByChild('name'),
+          itemBuilder: (BuildContext context, DataSnapshot snapshot,
+              Animation<double> animation, int index) =>
+          new StudyObjectWidget(
+            studyObject:
+            new StudyObject.fromJson(snapshot.key, snapshot.value),
+            onUpdate: (StudyObject localStudyObject) =>
+                _showInputDialog(localStudyObject),
+            onDelete: (StudyObject localStudyObject) =>
+                _delete(localStudyObject),
+          ),
+        ),
+      );
     });
 
     super.initState();
-  }
-
-  @override
-  void dispose() {
-    if (streamSubscription != null) {
-      streamSubscription.cancel();
-    }
-    super.dispose();
   }
 
   @override
@@ -97,30 +101,13 @@ class _HomeState extends State<Home> {
   }
 
   Widget _buildBody(BuildContext context) {
-    return new ListView(
-      children: list
-          .map((StudyObject studyObject) =>
-      new StudyObjectWidget(
-        studyObject: studyObject,
-        onUpdate: (StudyObject localStudyObject) =>
-            _showInputDialog(localStudyObject),
-        onDelete: (StudyObject localStudyObject) =>
-            _delete(localStudyObject),
-      ))
-          .toList(),
+    return new Column(
+      children: <Widget>[
+        new Flexible(
+          child: widgetList,
+        ),
+      ],
     );
-  }
-
-  Future<StreamSubscription<Event>> _getStreamSubscription() async {
-    return userReference.onValue.listen((Event event) {
-      list.clear();
-      if (event.snapshot.value != null) {
-        new SplayTreeMap.from(event.snapshot.value).forEach((key, value) {
-          StudyObject studyObject = new StudyObject.fromJson(key, value);
-          setState(() => list.add(studyObject));
-        });
-      }
-    });
   }
 
   void _logout() async {
@@ -191,7 +178,7 @@ class _HomeState extends State<Home> {
                         studyObject.description = _descriptionCtl.text;
                         _nameCtl.clear();
                         _descriptionCtl.clear();
-                        _setData(studyObject);
+                        _insertOrUpdate(studyObject);
                       },
                       child: const Text('OK'),
                     ),
@@ -205,7 +192,7 @@ class _HomeState extends State<Home> {
     );
   }
 
-  Future<Null> _setData(StudyObject studyObject) async {
+  Future<Null> _insertOrUpdate(StudyObject studyObject) async {
     DatabaseReference localReference;
 
     if (studyObject.key == null) {

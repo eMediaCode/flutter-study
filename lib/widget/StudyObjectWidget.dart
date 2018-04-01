@@ -41,7 +41,6 @@ class StudyObjectWidget extends StatelessWidget {
         ),
       ),
       child: new ListTile(
-        leading: new Icon(Icons.all_inclusive),
         title: new Text(name),
         subtitle: new Text(description),
         trailing: new Row(
