@@ -210,9 +210,9 @@ class _HomeState extends State<Home> {
       return mutableData;
     });
 
-    if (transactionResult.committed) {
-      Navigator.of(context).pop();
-    } else {
+    Navigator.of(context).pop();
+
+    if (!transactionResult.committed) {
       print('Transaction not committed.');
       if (transactionResult.error != null) {
         print(transactionResult.error.message);

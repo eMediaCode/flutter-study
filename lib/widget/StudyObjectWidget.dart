@@ -24,12 +24,6 @@ class StudyObjectWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final Color dividerColor = Theme.of(context).dividerColor;
 
-    String name = studyObject.name;
-    if (name == null) name = '';
-
-    String description = studyObject.description;
-    if (description == null) description = '';
-
     return new DecoratedBox(
       position: DecorationPosition.foreground,
       decoration: new BoxDecoration(
@@ -41,8 +35,8 @@ class StudyObjectWidget extends StatelessWidget {
         ),
       ),
       child: new ListTile(
-        title: new Text(name),
-        subtitle: new Text(description),
+        title: new Text(studyObject.name ?? ''),
+        subtitle: new Text(studyObject.description ?? ''),
         trailing: new Row(
           children: <Widget>[
             new IconButton(

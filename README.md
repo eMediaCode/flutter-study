@@ -14,6 +14,7 @@ Aplicação para aprendizado do Flutter com o Firebase.
   - [x] Alteração.
   - [x] Exclusão.
   - [x] Segurança.
+  - [x] FirebaseAnimatedList.
 - [ ] Implementar Firebase Storage
   - _Tarefas futuras..._
 - [ ] Implementar Firebase Messaging

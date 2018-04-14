@@ -5,12 +5,17 @@ class StudyObject {
 
   StudyObject(this.key);
 
-  StudyObject.fromJson(this.key, Map data)
+  StudyObject.fromJson(this.key,
+      Map data,)
       : name = data['name'],
         description = data['description'];
 
   @override
   String toString() {
-    return {'key': key, 'name': name, 'description': description}.toString();
+    return {
+      'key': key,
+      'name': name,
+      'description': description,
+    }.toString();
   }
 }
